@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
+import { useRouter } from "next/router";
 
 // ** MUI Components
 import Alert from '@mui/material/Alert'
@@ -21,6 +22,9 @@ import FormHelperText from '@mui/material/FormHelperText'
 import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
 import MuiFormControlLabel from '@mui/material/FormControlLabel'
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { notification } from "antd";
+import { auth, db, analytics, performance } from "../../../Firebase/firebase";
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -31,7 +35,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 
 // ** Hooks
-import { useAuth } from 'src/hooks/useAuth'
+// import { useAuth } from 'src/hooks/useAuth'
 import useBgColor from 'src/@core/hooks/useBgColor'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
@@ -96,7 +100,7 @@ const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
 
 const schema = yup.object().shape({
   email: yup.string().email().required(),
-  password: yup.string().min(5).required()
+  password: yup.string().min(6).required()
 })
 
 const defaultValues = {
@@ -107,9 +111,10 @@ const defaultValues = {
 const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter();
 
   // ** Hooks
-  const auth = useAuth()
+  // const auth = useAuth()
   const theme = useTheme()
   const bgColors = useBgColor()
   const { settings } = useSettings()
@@ -129,14 +134,51 @@ const LoginPage = () => {
     resolver: yupResolver(schema)
   })
 
-  const onSubmit = data => {
+  const onSubmit = async (data) => {
     const { email, password } = data
-    auth.login({ email, password, rememberMe }, () => {
-      setError('email', {
-        type: 'manual',
-        message: 'Email or Password is invalid'
-      })
-    })
+    try {
+
+      // const signInTrace = performance.trace('signIn');
+      // signInTrace.start();
+
+      await signInWithEmailAndPassword(auth, email, password);
+
+      // Log an analytics event for successful sign-in
+      // analytics.logEvent('sign_in', { method: 'email_password' });
+
+      // Stop the performance trace for the sign-in operation
+      // signInTrace.stop();
+      notification.open({
+        type: "success",
+        message: "Successfully Registered!",
+        placement: "top",
+      });
+
+      router.push('/dashboard')
+    } catch (error) {
+      const message = error.message;
+
+      console.error('Error signing in:', error.message);
+
+      if (error.message === "Firebase: Error (auth/email-already-in-use).") {
+        notification.open({
+          type: "error",
+          message: "Email already in use!",
+          placement: "top",
+        });
+
+      } else {
+        var modifiedText = message.replace("Firebase:", "");
+
+
+        notification.open({
+          type: "error",
+          message: modifiedText,
+          placement: "top",
+        });
+      }
+    }
+
   }
   const imageSource = skin === 'bordered' ? 'auth-v2-login-illustration-bordered' : 'auth-v2-login-illustration'
 

@@ -4,7 +4,14 @@ import { useState } from 'react'
 // ** Next Import
 import Link from 'next/link'
 
+import { notification } from "antd";
+
+
 // ** MUI Components
+
+
+
+
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
 import Checkbox from '@mui/material/Checkbox'
@@ -19,9 +26,20 @@ import { styled, useTheme } from '@mui/material/styles'
 import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
 import MuiFormControlLabel from '@mui/material/FormControlLabel'
+import * as Yup from "yup";
+import { useRouter } from "next/router";
+import { auth, db } from "../../../Firebase/firebase";
+import { collection, addDoc, doc, getDoc, setDoc } from "firebase/firestore";
+import {
+  createUserWithEmailAndPassword,
+  FirebaseAuthException,
+} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
+
+// import VisibilityIcon from '@mui/icons-material/Visibility';
+// import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
@@ -92,8 +110,122 @@ const LinkStyled = styled(Link)(({ theme }) => ({
 }))
 
 const Register = () => {
+
+  const router = useRouter();
+
   // ** States
-  const [showPassword, setShowPassword] = useState(false)
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+  });
+
+  const [formErrors, setFormErrors] = useState({
+    username: '',
+    email: '',
+    password: '',
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Validation function
+  const validateForm = () => {
+    let valid = true;
+    const newErrors = { ...formErrors };
+
+    // Validate username
+    if (!formData.username.trim()) {
+      newErrors.username = 'Username is required';
+      valid = false;
+    } else {
+      newErrors.username = '';
+    }
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim() || !emailRegex.test(formData.email.trim())) {
+      newErrors.email = 'Invalid email address';
+      valid = false;
+    } else {
+      newErrors.email = '';
+    }
+
+    // Validate password
+    if (!formData.password.trim()) {
+      newErrors.password = 'Password is required';
+      valid = false;
+    } else if (formData.password.trim().length < 6) {
+      newErrors.password = 'Password must be at least 6 characters long';
+      valid = false;
+    } else {
+      newErrors.password = '';
+    }
+
+    setFormErrors(newErrors);
+
+    return valid;
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("values", formData)
+
+    // Validate the form
+    if (!validateForm()) {
+
+      return;
+    }
+
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      const user = userCredential?.user;
+      console.log("userID", user?.uid);
+      const collectionRef = collection(db, "Users");
+      const docRef = doc(collectionRef, user?.uid);
+
+      await setDoc(docRef, { UserName: formData.username, Email: formData.email, Role: "User" }, { merge: true });
+
+      await signInWithEmailAndPassword(auth, formData.email, formData.password);
+
+      notification.open({
+        type: "success",
+        message: "Successfully Registered!",
+        placement: "top",
+      });
+
+      router.push('/dashboard')
+    } catch (error) {
+      const message = error.message;
+
+      console.error('Error signing in:', error.message);
+
+      if (error.message === "Firebase: Error (auth/email-already-in-use).") {
+        notification.open({
+          type: "error",
+          message: "Email already in use!",
+          placement: "top",
+        });
+        setFormErrors("");
+      } else {
+        var modifiedText = message.replace("Firebase:", "");
+        setFormErrors("");
+
+        notification.open({
+          type: "error",
+          message: modifiedText,
+          placement: "top",
+        });
+      }
+    }
+
+
+  };
 
   // ** Hooks
   const theme = useTheme()
@@ -217,44 +349,63 @@ const Register = () => {
               <TypographyStyled variant='h5'>Adventure starts here 🚀</TypographyStyled>
               <Typography variant='body2'>Make your app management easy and fun!</Typography>
             </Box>
-            <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-              <TextField autoFocus fullWidth sx={{ mb: 4 }} label='Username' placeholder='johndoe' />
-              <TextField fullWidth label='Email' sx={{ mb: 4 }} placeholder='user@email.com' />
+            <form noValidate autoComplete="off" onSubmit={handleSubmit}>
+              {/* Other form fields */}
+              <TextField
+                autoFocus
+                fullWidth
+                sx={{ mb: 4 }}
+                label="Username"
+                placeholder="johndoe"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                error={!!formErrors.username}
+                helperText={formErrors.username}
+
+              />
+              <TextField
+                fullWidth
+                label="Email"
+                sx={{ mb: 4 }}
+                placeholder="user@email.com"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                error={!!formErrors.email}
+                helperText={formErrors.email}
+              />
               <FormControl fullWidth>
-                <InputLabel htmlFor='auth-login-v2-password'>Password</InputLabel>
-                <OutlinedInput
-                  label='Password'
-                  id='auth-login-v2-password'
+                {/* Password field */}
+                {/* Add error and helperText properties similar to other fields */}
+                {/* <InputLabel htmlFor="auth-login-v2-password">Password</InputLabel> */}
+                <TextField
+
+                  id="auth-login-v2-password"
                   type={showPassword ? 'text' : 'password'}
-                  endAdornment={
-                    <InputAdornment position='end'>
-                      <IconButton
-                        edge='end'
-                        onMouseDown={e => e.preventDefault()}
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        <Icon icon={showPassword ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} />
-                      </IconButton>
-                    </InputAdornment>
-                  }
+                  error={!!formErrors.password}
+                  helperText={formErrors.password}
+                  value={formData.password}
+                  label="Password"
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          edge="end"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <Icon icon="mdi:eye-outline" /> : <Icon icon="mdi:eye-off-outline" />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+
+
+                  labelWidth={80}
                 />
               </FormControl>
-
-              <FormControlLabel
-                control={<Checkbox />}
-                sx={{ mb: 4, mt: 1.5, '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}
-                label={
-                  <>
-                    <Typography variant='body2' component='span'>
-                      I agree to{' '}
-                    </Typography>
-                    <LinkStyled href='/' onClick={e => e.preventDefault()}>
-                      privacy policy & terms
-                    </LinkStyled>
-                  </>
-                }
-              />
-              <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 7 }}>
+              {/* Other form fields */}
+              <Button fullWidth size="large" type="submit" variant="contained" sx={{ mb: 7, mt: 8 }}>
                 Sign up
               </Button>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -262,34 +413,6 @@ const Register = () => {
                 <Typography href='/login' component={Link} sx={{ color: 'primary.main', textDecoration: 'none' }}>
                   Sign in instead
                 </Typography>
-              </Box>
-              <Divider
-                sx={{
-                  '& .MuiDivider-wrapper': { px: 4 },
-                  mt: theme => `${theme.spacing(5)} !important`,
-                  mb: theme => `${theme.spacing(7.5)} !important`
-                }}
-              >
-                or
-              </Divider>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <IconButton href='/' component={Link} sx={{ color: '#497ce2' }} onClick={e => e.preventDefault()}>
-                  <Icon icon='mdi:facebook' />
-                </IconButton>
-                <IconButton href='/' component={Link} sx={{ color: '#1da1f2' }} onClick={e => e.preventDefault()}>
-                  <Icon icon='mdi:twitter' />
-                </IconButton>
-                <IconButton
-                  href='/'
-                  component={Link}
-                  onClick={e => e.preventDefault()}
-                  sx={{ color: theme => (theme.palette.mode === 'light' ? '#272727' : 'grey.300') }}
-                >
-                  <Icon icon='mdi:github' />
-                </IconButton>
-                <IconButton href='/' component={Link} sx={{ color: '#db4437' }} onClick={e => e.preventDefault()}>
-                  <Icon icon='mdi:google' />
-                </IconButton>
               </Box>
             </form>
           </BoxWrapper>
