@@ -5,11 +5,11 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 
 // ** Hooks Import
-import { useAuth } from 'src/hooks/useAuth'
+import { getAuth } from 'firebase/auth'
 
 const GuestGuard = props => {
   const { children, fallback } = props
-  const auth = useAuth()
+  const auth = getAuth()
   const router = useRouter()
   useEffect(() => {
     if (!router.isReady) {
@@ -20,7 +20,7 @@ const GuestGuard = props => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.route])
-  if (auth.loading || (!auth.loading && auth.user !== null)) {
+  if (auth.currentUser !== null) {
     return fallback
   }
 

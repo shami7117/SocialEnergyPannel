@@ -28,7 +28,7 @@ import Typography from '@mui/material/Typography'
 import MuiFormControlLabel from '@mui/material/FormControlLabel'
 import * as Yup from "yup";
 import { useRouter } from "next/router";
-import { auth, db } from "../../../Firebase/firebase";
+import { auth, db, updateUserRole } from "../../../Firebase/firebase";
 import { collection, addDoc, doc, getDoc, setDoc } from "firebase/firestore";
 import {
   createUserWithEmailAndPassword,
@@ -187,6 +187,8 @@ const Register = () => {
       const user = userCredential?.user;
       console.log("userID", user?.uid);
       const collectionRef = collection(db, "Users");
+
+
       const docRef = doc(collectionRef, user?.uid);
 
       await setDoc(docRef, { UserName: formData.username, Email: formData.email, Role: "User" }, { merge: true });

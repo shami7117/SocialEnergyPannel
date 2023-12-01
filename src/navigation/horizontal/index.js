@@ -128,7 +128,7 @@ const navigation = () => {
           icon: 'mdi:google-circles-extended'
         },
         {
-          
+
           title: 'Cards',
           icon: 'mdi:credit-card-outline',
           children: [
@@ -591,8 +591,8 @@ const navigation = () => {
       children: [
         {
           path: '/acl',
-          action: 'read',
-          subject: 'acl-page',
+
+
           icon: 'mdi:shield-outline',
           title: 'Access Control'
         },

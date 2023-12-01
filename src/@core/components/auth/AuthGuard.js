@@ -5,18 +5,22 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 
 // ** Hooks Import
-import { useAuth } from 'src/hooks/useAuth'
+import { auth } from '../../../../Firebase/firebase'
+
 
 const AuthGuard = props => {
   const { children, fallback } = props
-  const auth = useAuth()
+  const user = auth.currentUser;
   const router = useRouter()
   useEffect(
     () => {
-      if (!router.isReady) {
+      if (!user) {
         return
       }
-      if (auth.user === null && !window.localStorage.getItem('userData')) {
+
+      // && !window.localStorage.getItem('userData')
+
+      if (user === null) {
         if (router.asPath !== '/') {
           router.replace({
             pathname: '/login',

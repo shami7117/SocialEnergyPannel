@@ -3,6 +3,18 @@ import { initializeApp, } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { FirebaseApp } from "firebase/app";
+import {
+  arrayRemove,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  where,
+} from "firebase/firestore";
+
 import firebase from 'firebase/app';
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -26,4 +38,9 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
 export const auth = getAuth(app);
+
+
+// export const googleProvider = auth.GoogleAuthProvider();
+
+
 

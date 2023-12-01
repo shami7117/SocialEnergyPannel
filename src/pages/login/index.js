@@ -24,7 +24,7 @@ import Typography from '@mui/material/Typography'
 import MuiFormControlLabel from '@mui/material/FormControlLabel'
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { notification } from "antd";
-import { auth, db, analytics, performance } from "../../../Firebase/firebase";
+import { auth, db, analytics, performance, updateUserRole } from "../../../Firebase/firebase";
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -292,17 +292,10 @@ const LoginPage = () => {
               </Typography>
             </Box>
             <Box sx={{ mb: 6 }}>
-              <TypographyStyled variant='h5'>{`Welcome to ${themeConfig.templateName}! 👋🏻`}</TypographyStyled>
+              <TypographyStyled variant='h5'>{`Welcome to Social-Energy 👋🏻`}</TypographyStyled>
               <Typography variant='body2'>Please sign-in to your account and start the adventure</Typography>
             </Box>
-            <Alert icon={false} sx={{ py: 3, mb: 6, ...bgColors.primaryLight, '& .MuiAlert-message': { p: 0 } }}>
-              <Typography variant='caption' sx={{ mb: 2, display: 'block', color: 'primary.main' }}>
-                Admin: <strong>admin@materialize.com</strong> / Pass: <strong>admin</strong>
-              </Typography>
-              <Typography variant='caption' sx={{ display: 'block', color: 'primary.main' }}>
-                Client: <strong>client@materialize.com</strong> / Pass: <strong>client</strong>
-              </Typography>
-            </Alert>
+
             <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
               <FormControl fullWidth sx={{ mb: 4 }}>
                 <Controller
