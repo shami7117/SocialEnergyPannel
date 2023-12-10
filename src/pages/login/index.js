@@ -154,7 +154,7 @@ const LoginPage = () => {
         placement: "top",
       });
 
-      router.push('/dashboard')
+      router.push('/')
     } catch (error) {
       const message = error.message;
 
