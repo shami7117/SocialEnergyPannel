@@ -2,7 +2,7 @@ module.exports = {
   env: {
     node: true,
     es6: true,
-    browser: true
+    browser: true,
   },
   parser: '@babel/eslint-parser',
   extends: ['next/core-web-vitals', 'prettier'],
@@ -13,8 +13,8 @@ module.exports = {
     ecmaFeatures: {
       jsx: true,
       modules: true,
-      experimentalObjectRestSpread: true
-    }
+      experimentalObjectRestSpread: true,
+    },
   },
   rules: {
     'react/react-in-jsx-scope': 'off',
@@ -24,35 +24,29 @@ module.exports = {
     'react/no-unescaped-entities': 'off',
     'import/no-anonymous-default-export': 'off',
 
-    // add new line above comment
+    // Add a new line above comments and certain statements
     'lines-around-comment': [
-      'error',
+      'off',
       {
         beforeLineComment: true,
         beforeBlockComment: true,
         allowBlockStart: true,
         allowClassStart: true,
         allowObjectStart: true,
-        allowArrayStart: true
-      }
+        allowArrayStart: true,
+      },
     ],
+    'newline-before-return': 'off',
 
-    // add new line above return
-    'newline-before-return': 'error',
-
-    // add new line below import
-    'import/newline-after-import': [
-      'error',
-      {
-        count: 1
-      }
-    ],
-
-    // add new line after each var, const, let declaration
+    // Add a new line after each var, const, let declaration
     'padding-line-between-statements': [
-      'error',
+      'off',
       { blankLine: 'always', prev: ['export'], next: ['*'] },
-      { blankLine: 'always', prev: ['*'], next: ['multiline-const', 'multiline-let', 'multiline-var', 'export'] }
-    ]
-  }
-}
+      {
+        blankLine: 'always',
+        prev: ['*'],
+        next: ['multiline-const', 'multiline-let', 'multiline-var', 'export'],
+      },
+    ],
+  },
+};
