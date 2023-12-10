@@ -154,7 +154,7 @@ const LoginPage = () => {
         placement: "top",
       });
 
-      router.push('/')
+      router.push('/dashboards/crm/')
     } catch (error) {
       const message = error.message;
 
